@@ -1,5 +1,5 @@
 const api = "https://63331d67433198e79dbfa3d4.mockapi.io/api/DatasGame"
-const api2="https://63331d67433198e79dbfa3d4.mockapi.io/api/DatasUserGame"
+const api2="https://63331d67433198e79dbfa3d4.mockapi.io/api/DatasUserGameTLIT"
 
 const question2=["Chữ T: Tên gọi của khoa Công nghệ thông tin vào năm 2021? ","Chữ L: Khi cần chứng minh 1 bài toán, chúng ta cần đưa ra điều gì?","Chữ U: Từ nào dùng để chỉ việc đưa từ lí thuyết mà chúng ta có được đi vào thực tiễn?" ]
 const chests=document.querySelectorAll('.chest');
@@ -47,7 +47,8 @@ const inputInfor=document.querySelectorAll('.body-input')
 inputInfor[0].value=localStorage.getItem('name')?localStorage.getItem('name'):''
 inputInfor[1].value=localStorage.getItem('msv')?localStorage.getItem('msv'):''
 inputInfor[2].value=localStorage.getItem('_class')?localStorage.getItem('_class'):''
-var isRegist=localStorage.getItem('isRegist')?true:false
+
+
 const chestsPos=[]
 var shipPos={
  
@@ -70,7 +71,58 @@ function updateData(api,data){
 }
 
 // -------------------------------------------------
-
+function toggleFullScreen() {
+    if ((document.fullScreenElement && document.fullScreenElement !== null) || (!document.mozFullScreen && !document.webkitIsFullScreen))
+    {
+        if (document.documentElement.requestFullScreen){
+            document.documentElement.requestFullScreen();
+        }
+        else if (document.documentElement.mozRequestFullScreen){ /* Firefox */
+            document.documentElement.mozRequestFullScreen();
+        }
+        else if (document.documentElement.webkitRequestFullScreen){   /* Chrome, Safari & Opera */
+            document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        }
+        else if (document.msRequestFullscreen){ /* IE/Edge */
+            document.documentElement.msRequestFullscreen();
+        }
+    }
+    else
+    {
+        if (document.cancelFullScreen){
+            document.cancelFullScreen();
+        }
+        else if (document.mozCancelFullScreen){ /* Firefox */
+            document.mozCancelFullScreen();
+        }
+        else if (document.webkitCancelFullScreen){   /* Chrome, Safari and Opera */
+            document.webkitCancelFullScreen();
+        }
+        else if (document.msExitFullscreen){ /* IE/Edge */
+            document.msExitFullscreen();
+        }
+    }
+}
+//---------------------------------------------------
+document.onkeydown = function(e) {
+    if(e.key== 'F12') {
+       return false;
+    }
+    if(e.ctrlKey && e.shiftKey && e.key== 'I') {
+       return false;
+    }
+    if(e.ctrlKey && e.shiftKey && e.key == 'C') {
+       return false;
+    }
+    if(e.ctrlKey && e.shiftKey && e.key == 'J') {
+       return false;
+    }
+    if(e.ctrlKey && e.key== 'U') {
+        
+       return false;
+    }
+}
+//------------------------------------------------------------
 function handleMusic(){
     if(features.classList.contains('fa-play')){
         part_1Song.play()
@@ -86,7 +138,7 @@ document.addEventListener('keydown',(e)=>{
     if(e.key == "Enter"){
         handleMusic()
     }
-    if(e.key == "Shift"){
+    if(e.key == "Control"){
         if(beach.duration > 0 && !beach.paused){
             beach.pause();
         }
@@ -100,7 +152,12 @@ features.addEventListener('click',()=>{
 })
 
 btnStart.addEventListener('click',()=>{
-    checkValidate()
+    btnStart.innerHTML=`<span class="loader"></span>`;
+    getData(api2,(datas)=>{
+        btnStart.innerHTML=`Let's start!`;
+        checkValidate(datas[0].data);
+    })
+    
 })
 btnNext1.addEventListener('click',()=>{
     animShip("Đuổi theo hòm kho báu đang trôi dạt vào đảo tri thức!",2,2000,6000,10000)
@@ -109,27 +166,24 @@ btnNext1.addEventListener('click',()=>{
 });
 btnNext2.addEventListener('click',()=>{
     getData(api2,(datas)=>{
-        animShip("Tiến tơi đảo chiến thắng nào!",3,2000,5000,9000,datas[0].data)
+        animShip("Tiến tới đảo chiến thắng nào!",3,2000,5000,9000,datas[0].data)
     })
     btnNext2.style.pointerEvents = 'none';
 });
 function startGame1(){
+   
     localStorage.setItem('name',inputInfor[0].value)
     localStorage.setItem('msv',inputInfor[1].value.toUpperCase())
     localStorage.setItem('_class',inputInfor[2].value.toUpperCase())
-
-    localStorage.setItem('isRegist',true);
     saveInfor(inputInfor[0].value,inputInfor[1].value.toUpperCase(),inputInfor[2].value.toUpperCase())
     part_1.classList.remove('d-flex')
     part_2.classList.add('d-flex')
     clockCount()
-
     shipPos={
         y:Math.round(ship.getBoundingClientRect().top),
         x:Math.round(ship.getBoundingClientRect().left),
     }
-
-    getData(api,(datas)=>saveData(datas))
+        getData(api,(datas)=>saveData(datas))
 }
 
 function saveInfor(name,msv,_class){
@@ -337,19 +391,40 @@ function handleGetData(data){
     mainData=data
 }
 
-function checkValidate(){
-    var isContinue=true
+function checkValidate(data){
     const message=document.querySelectorAll('.message')
+    var isContinue=true
+  
+    
+console.log(inputInfor[1].value.length)
     inputInfor.forEach((item,i)=>{
+        if(i===1){
+            for(var index=0;index<data.length;index++){
+                if(data[index].msv===inputInfor[1].value.toUpperCase()){
+                    message[1].innerHTML='Mã sinh viên đã chơi rồi!';
+                    isContinue=false;
+               
+                }
+            }
+            if(Boolean(Number(inputInfor[1].value.slice(1)))===false || inputInfor[1].value.length==1){
+                message[1].innerHTML='Đây không phải mã sinh viên!';
+                isContinue=false;
+            }
+            if(Boolean(Number(inputInfor[1].value.slice(1)))===true && (Number(inputInfor[1].value.slice(1))<44076 || Number(inputInfor[1].value.slice(1))>50000)){
+                message[1].innerHTML='Bạn phải là K35 mới tham gia được trò chơi';
+                isContinue=false;
+
+            }
+        }
         if(item.value===''){
             message[i].innerHTML='Không bỏ trống trường này!';
-            isContinue=false
-            return;
+            isContinue=false;
         }
-        else{
+        else if(isContinue!==false){
             message[i].innerHTML=''
         }
         if((i==2) && (isContinue===true)){
+            toggleFullScreen()
             beach.play()
             part_1Song.volume=0.2;
            animShip("Tiến lên thuyền trưởng!",1,2000,5000,9000)
@@ -470,17 +545,19 @@ function enterAnswer(index){
         
 }
 function checkGame2(index,value){
+    document.querySelector(".input-ans-2").value="";
     if(index===0){
         if (value==="toan tin"||value==="toán tin"){
             done(index,1);
             myScore+=10;
             score[1].innerHTML=myScore
-
             popupContainer[index].classList.add("true");
 
         }
         else{
             done(index,0);
+       
+
         }
     }
     if(index===1){
@@ -556,8 +633,16 @@ function phaohoa(){
 }
 //-------------------------------------------------------------------------
 function finish(dataFinish){
-    dataFinish=dynamicSort(dataFinish)
-    part_3.classList.remove('d-flex');
+    dataFinish=dynamicSort(dataFinish);
+    if(part_3.classList.contains('d-flex')){
+        part_3.classList.remove('d-flex');
+    }
+    if(part_2.classList.contains('d-flex')){
+        part_3.classList.remove('d-flex');
+    }
+    if(part_1.classList.contains('d-flex')){
+        part_3.classList.remove('d-flex');
+    }
     const finish=document.querySelector('.finish');
     const shipFinish=document.querySelector('.finish-ship');
     const flagFinish=document.querySelector('.flag-tlit');
